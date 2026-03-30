@@ -21,7 +21,10 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
-    "@types/node": "^22.15.30"
+    "@types/node": "^22.15.30",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "ajv": "^8.18.0"
   }
 }

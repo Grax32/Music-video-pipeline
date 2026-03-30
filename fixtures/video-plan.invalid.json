@@ -1,0 +1,10 @@
+{
+  "plan_id": "",
+  "target_fps": 0,
+  "target_resolution": "1080p",
+  "global_style": {
+    "visual_bible": "",
+    "negative_constraints": ""
+  },
+  "shots": []
+}
