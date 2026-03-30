@@ -1,0 +1,32 @@
+{
+  "plan_id": "plan_r1",
+  "target_fps": 24,
+  "target_resolution": "1920x1080",
+  "global_style": {
+    "visual_bible": "warm cinematic realism, shallow depth of field",
+    "negative_constraints": "bad anatomy, text artifacts, extra limbs"
+  },
+  "shots": [
+    {
+      "shot_id": "sh_001",
+      "start_s": 0,
+      "end_s": 4,
+      "purpose": "establishing shot",
+      "prompt": "wide sunrise shot over orange grove",
+      "negative_prompt": "blurry, distorted",
+      "camera": {
+        "framing": "wide",
+        "move": "slow_dolly_in",
+        "lens_mm": 35
+      },
+      "audio": {
+        "use_source_mp3": true,
+        "dialogue_ranges": []
+      },
+      "generation": {
+        "seed": 42,
+        "model_profile": "sdxl-local-v1"
+      }
+    }
+  ]
+}
