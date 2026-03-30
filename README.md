@@ -47,10 +47,11 @@ npm run build
   - storyboard job queueing
   - project/job status reads
 - ✅ Runtime `VideoPlan` schema validation is available via AJV, with valid/invalid fixtures for quick checks.
+- ✅ Plan revisions can now be saved with strict runtime validation before storyboard jobs are accepted.
 - ⏳ Remaining priorities:
   - storage adapters for metadata and immutable artifacts
 
 ## Next recommended steps
 
 1. Add storage adapters for project metadata and immutable artifacts.
-2. Wire validated `VideoPlan` documents into plan generation/persistence flow.
+2. Add persistence adapters for revisions/jobs so validation and queue guards survive process restarts.
