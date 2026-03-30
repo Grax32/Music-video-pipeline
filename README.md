@@ -30,6 +30,7 @@ npm run build
 │   ├── api/
 │   ├── domain/
 │   ├── orchestrator/
+│   ├── storage/
 │   └── index.ts
 ├── architecture-plan.md
 ├── package.json
@@ -48,10 +49,11 @@ npm run build
   - project/job status reads
 - ✅ Runtime `VideoPlan` schema validation is available via AJV, with valid/invalid fixtures for quick checks.
 - ✅ Plan revisions can now be saved with strict runtime validation before storyboard jobs are accepted.
+- ✅ Storage adapter interfaces now separate metadata/artifact persistence from API orchestration, with in-memory defaults.
 - ⏳ Remaining priorities:
-  - storage adapters for metadata and immutable artifacts
+  - disk or database-backed persistence adapters for process restarts
 
 ## Next recommended steps
 
-1. Add storage adapters for project metadata and immutable artifacts.
-2. Add persistence adapters for revisions/jobs so validation and queue guards survive process restarts.
+1. Add filesystem/DB-backed adapters implementing `ProjectMetadataStore` and `ImmutableArtifactStore`.
+2. Persist `VideoPlan` payloads by revision in storage so plan validation lineage survives process restarts.

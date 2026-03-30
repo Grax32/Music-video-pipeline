@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { queueJob } from "../orchestrator/pipeline-orchestrator.js";
 import {
+  Artifact,
   CreateProjectRequest,
   JobType,
   PipelineJob,
@@ -9,6 +10,11 @@ import {
   Revision,
 } from "../domain/project-types.js";
 import { VideoPlan } from "../domain/video-plan.js";
+import {
+  InMemoryImmutableArtifactStore,
+  InMemoryProjectMetadataStore,
+} from "../storage/in-memory-storage.js";
+import { ImmutableArtifactStore, ProjectMetadataStore } from "../storage/storage-types.js";
 import { assertValidVideoPlan } from "../validation/video-plan-validator.js";
 
 export interface CreateProjectResponse {
@@ -23,6 +29,14 @@ export interface QueuePipelineStageRequest {
   inputRevisionId?: string;
 }
 
+export interface SaveArtifactRequest {
+  projectId: string;
+  revisionId: string;
+  kind: Artifact["kind"];
+  path: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface ProjectStatus {
   project: Project;
   jobs: PipelineJob[];
@@ -31,6 +45,8 @@ export interface ProjectStatus {
 export interface PipelineApi {
   createProject(input: CreateProjectRequest): CreateProjectResponse;
   saveVideoPlan(projectId: string, plan: unknown): Revision;
+  saveArtifact(input: SaveArtifactRequest): Artifact;
+  getArtifact(artifactId: string): Artifact;
   queuePlanning(input: QueuePipelineStageRequest): PipelineJob;
   queueStoryboard(input: QueuePipelineStageRequest): PipelineJob;
   getJobStatus(projectId: string, jobId: string): PipelineJob;
@@ -40,11 +56,17 @@ export interface PipelineApi {
 const PROJECT_BOOTSTRAP_JOB: JobType = "transcript.generate";
 
 export class InMemoryPipelineApi implements PipelineApi {
-  private readonly projects = new Map<string, Project>();
-  private readonly projectProviders = new Map<string, Provider>();
-  private readonly jobs = new Map<string, PipelineJob[]>();
-  private readonly planRevisions = new Map<string, Revision[]>();
+  private readonly metadataStore: ProjectMetadataStore;
+  private readonly artifactStore: ImmutableArtifactStore;
   private readonly videoPlansByRevision = new Map<string, VideoPlan>();
+
+  constructor(input?: {
+    metadataStore?: ProjectMetadataStore;
+    artifactStore?: ImmutableArtifactStore;
+  }) {
+    this.metadataStore = input?.metadataStore ?? new InMemoryProjectMetadataStore();
+    this.artifactStore = input?.artifactStore ?? new InMemoryImmutableArtifactStore();
+  }
 
   createProject(input: CreateProjectRequest): CreateProjectResponse {
     const now = new Date().toISOString();
@@ -56,8 +78,7 @@ export class InMemoryPipelineApi implements PipelineApi {
     };
 
     const defaultProvider = input.options?.defaultProvider ?? "local";
-    this.projects.set(project.projectId, project);
-    this.projectProviders.set(project.projectId, defaultProvider);
+    this.metadataStore.saveProject(project, defaultProvider);
 
     const seedJob = this.queueProjectJob(project.projectId, PROJECT_BOOTSTRAP_JOB, {
       provider: defaultProvider,
@@ -85,7 +106,7 @@ export class InMemoryPipelineApi implements PipelineApi {
     this.assertProjectExists(projectId);
     assertValidVideoPlan(plan);
 
-    const revisions = this.planRevisions.get(projectId) ?? [];
+    const revisions = this.metadataStore.listPlanRevisions(projectId);
     const now = new Date().toISOString();
     const revision: Revision = {
       revisionId: this.createPrefixedId("rev"),
@@ -95,15 +116,41 @@ export class InMemoryPipelineApi implements PipelineApi {
       createdAt: now,
     };
 
-    this.planRevisions.set(projectId, [...revisions, revision]);
+    this.metadataStore.appendPlanRevision(projectId, revision);
     this.videoPlansByRevision.set(revision.revisionId, plan);
 
     return revision;
   }
 
+  saveArtifact(input: SaveArtifactRequest): Artifact {
+    this.assertProjectExists(input.projectId);
+
+    const artifact: Artifact = {
+      artifactId: this.createPrefixedId("artifact"),
+      projectId: input.projectId,
+      revisionId: input.revisionId,
+      kind: input.kind,
+      path: input.path,
+      metadata: input.metadata ?? {},
+      createdAt: new Date().toISOString(),
+    };
+
+    this.artifactStore.saveArtifact(artifact);
+    return artifact;
+  }
+
+  getArtifact(artifactId: string): Artifact {
+    const artifact = this.artifactStore.getArtifact(artifactId);
+    if (!artifact) {
+      throw new Error(`Artifact not found: ${artifactId}`);
+    }
+
+    return artifact;
+  }
+
   getJobStatus(projectId: string, jobId: string): PipelineJob {
     this.assertProjectExists(projectId);
-    const projectJobs = this.jobs.get(projectId) ?? [];
+    const projectJobs = this.metadataStore.listJobs(projectId);
     const job = projectJobs.find((candidate) => candidate.jobId === jobId);
 
     if (!job) {
@@ -115,7 +162,7 @@ export class InMemoryPipelineApi implements PipelineApi {
 
   getProjectStatus(projectId: string): ProjectStatus {
     const project = this.assertProjectExists(projectId);
-    const jobs = this.jobs.get(projectId) ?? [];
+    const jobs = this.metadataStore.listJobs(projectId);
     return {
       project,
       jobs,
@@ -128,7 +175,7 @@ export class InMemoryPipelineApi implements PipelineApi {
     input: { provider?: Provider; inputRevisionId?: string },
   ): PipelineJob {
     this.assertProjectExists(projectId);
-    const provider = input.provider ?? this.projectProviders.get(projectId) ?? "local";
+    const provider = input.provider ?? this.metadataStore.getProvider(projectId) ?? "local";
 
     const job = queueJob({
       projectId,
@@ -137,14 +184,13 @@ export class InMemoryPipelineApi implements PipelineApi {
       inputRevisionId: input.inputRevisionId,
     });
 
-    const existingJobs = this.jobs.get(projectId) ?? [];
-    this.jobs.set(projectId, [...existingJobs, job]);
+    this.metadataStore.appendJob(projectId, job);
 
     return job;
   }
 
   private assertProjectExists(projectId: string): Project {
-    const project = this.projects.get(projectId);
+    const project = this.metadataStore.getProject(projectId);
     if (!project) {
       throw new Error(`Project not found: ${projectId}`);
     }
@@ -153,7 +199,7 @@ export class InMemoryPipelineApi implements PipelineApi {
   }
 
   private assertNoActiveJob(projectId: string, jobType: JobType): void {
-    const projectJobs = this.jobs.get(projectId) ?? [];
+    const projectJobs = this.metadataStore.listJobs(projectId);
     const activeJob = projectJobs.find(
       (candidate) =>
         candidate.type === jobType &&
@@ -168,7 +214,7 @@ export class InMemoryPipelineApi implements PipelineApi {
   }
 
   private assertPlanRevisionExists(projectId: string, revisionId?: string): void {
-    const planRevisions = this.planRevisions.get(projectId) ?? [];
+    const planRevisions = this.metadataStore.listPlanRevisions(projectId);
 
     if (planRevisions.length === 0) {
       throw new Error(
