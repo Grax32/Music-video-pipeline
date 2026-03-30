@@ -36,8 +36,21 @@ npm run build
 └── tsconfig.json
 ```
 
+## Architecture progress snapshot
+
+- ✅ Architecture and workflow documents are in place.
+- ✅ Core domain contracts for projects, revisions, artifacts, and jobs are defined.
+- ✅ Orchestrator bootstrap can queue provider-aware pipeline jobs.
+- ✅ In-memory API handlers now cover:
+  - project creation (with bootstrap transcript job)
+  - planning job queueing
+  - storyboard job queueing
+  - project/job status reads
+- ⏳ Remaining priorities:
+  - runtime schema validation and fixtures for `VideoPlan`
+  - storage adapters for metadata and immutable artifacts
+
 ## Next recommended steps
 
-1. Add API handlers for project creation, planning, storyboard generation, and job status.
-2. Add schema validation runtime and fixtures for `VideoPlan`.
-3. Add storage adapters for project metadata and immutable artifacts.
+1. Add schema validation runtime and fixtures for `VideoPlan`.
+2. Add storage adapters for project metadata and immutable artifacts.
