@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://music-video-pipeline.local/schemas/video-plan.schema.json",
+  "title": "VideoPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_id",
+    "target_fps",
+    "target_resolution",
+    "global_style",
+    "shots"
+  ],
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_fps": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_resolution": {
+      "type": "string",
+      "pattern": "^[0-9]{3,5}x[0-9]{3,5}$"
+    },
+    "global_style": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["visual_bible", "negative_constraints"],
+      "properties": {
+        "visual_bible": { "type": "string", "minLength": 1 },
+        "negative_constraints": { "type": "string", "minLength": 1 }
+      }
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/shot"
+      }
+    }
+  },
+  "$defs": {
+    "shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "shot_id",
+        "start_s",
+        "end_s",
+        "purpose",
+        "prompt",
+        "negative_prompt",
+        "camera",
+        "audio",
+        "generation"
+      ],
+      "properties": {
+        "shot_id": { "type": "string", "minLength": 1 },
+        "start_s": { "type": "number", "minimum": 0 },
+        "end_s": { "type": "number", "exclusiveMinimum": 0 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "prompt": { "type": "string", "minLength": 1 },
+        "negative_prompt": { "type": "string", "minLength": 1 },
+        "camera": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["framing", "move", "lens_mm"],
+          "properties": {
+            "framing": { "type": "string", "minLength": 1 },
+            "move": { "type": "string", "minLength": 1 },
+            "lens_mm": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["use_source_mp3", "dialogue_ranges"],
+          "properties": {
+            "use_source_mp3": { "type": "boolean" },
+            "dialogue_ranges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["start_s", "end_s"],
+                "properties": {
+                  "start_s": { "type": "number", "minimum": 0 },
+                  "end_s": { "type": "number", "exclusiveMinimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        "generation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["seed", "model_profile"],
+          "properties": {
+            "seed": { "type": "integer", "minimum": 0 },
+            "model_profile": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

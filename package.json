@@ -1,0 +1,14 @@
+{
+  "name": "music-video-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first AI-assisted music video pipeline",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
