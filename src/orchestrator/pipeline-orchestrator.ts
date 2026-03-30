@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { JobType, PipelineJob, Provider } from "../domain/project-types.js";
 
 export interface QueueJobInput {
@@ -7,11 +8,17 @@ export interface QueueJobInput {
   inputRevisionId?: string;
 }
 
-export function queueJob(input: QueueJobInput): PipelineJob {
-  const now = new Date().toISOString();
+export interface QueueJobOptions {
+  now?: Date;
+  jobIdFactory?: () => string;
+}
+
+export function queueJob(input: QueueJobInput, options: QueueJobOptions = {}): PipelineJob {
+  const now = (options.now ?? new Date()).toISOString();
+  const jobId = (options.jobIdFactory ?? (() => `job_${randomUUID()}`))();
 
   return {
-    jobId: `job_${Math.random().toString(36).slice(2, 10)}`,
+    jobId,
     projectId: input.projectId,
     type: input.type,
     provider: input.provider,

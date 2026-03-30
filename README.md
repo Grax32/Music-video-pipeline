@@ -4,13 +4,13 @@ Local-first API and orchestration foundation for an AI-assisted music video work
 
 ## Project bootstrap status
 
-This repository now includes a basic TypeScript project skeleton aligned with the architecture plan:
+This repository includes a minimal TypeScript scaffold aligned with the architecture plan:
 
-- `docs/architecture-plan.md` copied into a docs location
-- initial JSON schema at `schemas/video-plan.schema.json`
-- domain model definitions at `src/domain/project-types.ts`
-- orchestrator bootstrap function at `src/orchestrator/pipeline-orchestrator.ts`
-- baseline TypeScript toolchain (`package.json`, `tsconfig.json`)
+- architecture source docs in `architecture-plan.md` and `docs/architecture-plan.md`
+- initial JSON schema in `schemas/video-plan.schema.json`
+- domain contracts in `src/domain/project-types.ts`
+- orchestrator bootstrap in `src/orchestrator/pipeline-orchestrator.ts`
+- package entrypoint in `src/index.ts`
 
 ## Quick start
 
@@ -30,22 +30,14 @@ npm run build
 │   ├── api/
 │   ├── domain/
 │   ├── orchestrator/
-│   ├── providers/
-│   │   ├── cloud/
-│   │   └── local/
-│   ├── services/
-│   │   ├── asr/
-│   │   ├── planning/
-│   │   ├── render/
-│   │   ├── resolve/
-│   │   ├── storyboard/
-│   │   └── timeline/
-│   └── storage/
-└── projects/
+│   └── index.ts
+├── architecture-plan.md
+├── package.json
+└── tsconfig.json
 ```
 
 ## Next recommended steps
 
-1. Add a persistence layer for `Project`, `Revision`, `Artifact`, and `PipelineJob` entities.
-2. Add HTTP handlers for the initial endpoints from the architecture plan.
-3. Add schema validation tooling and sample fixtures for plans and storyboards.
+1. Add API handlers for project creation, planning, storyboard generation, and job status.
+2. Add schema validation runtime and fixtures for `VideoPlan`.
+3. Add storage adapters for project metadata and immutable artifacts.
