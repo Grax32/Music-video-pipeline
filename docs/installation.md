@@ -61,6 +61,7 @@ So Postgres is optional now, likely required later when DB-backed adapters are a
 npm install
 npm run check
 npm run build
+npm run init:local
 ```
 
 ## 5) Init script (one-command setup)
@@ -68,7 +69,7 @@ npm run build
 Use this script to bootstrap the project and run validation/build:
 
 ```bash
-./scripts/init-local.sh
+npm run init:local
 ```
 
 What it does:
@@ -78,6 +79,8 @@ What it does:
 3. Runs `npm install`.
 4. Runs `npm run check`.
 5. Runs `npm run build`.
+
+If you prefer shell scripts on macOS/Linux, `./scripts/init-local.sh` now delegates to the same Node-based setup flow.
 
 ## 6) Docker Compose option
 
