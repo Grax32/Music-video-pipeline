@@ -20,6 +20,10 @@ npm run check
 npm run build
 ```
 
+## Installation and environment
+
+See `docs/installation.md` for version expectations (Node, DaVinci Resolve), local init script usage, and Docker Compose options (including optional PostgreSQL).
+
 ## Current structure
 
 ```text

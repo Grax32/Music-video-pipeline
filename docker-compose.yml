@@ -1,0 +1,23 @@
+services:
+  app:
+    image: node:22-bookworm
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: >
+      bash -lc "npm install && npm run check && npm run build"
+
+  postgres:
+    image: postgres:16
+    profiles: ["db"]
+    environment:
+      POSTGRES_DB: music_video_pipeline
+      POSTGRES_USER: mvp
+      POSTGRES_PASSWORD: mvp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
