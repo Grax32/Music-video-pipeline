@@ -45,6 +45,7 @@ export interface ProjectStatus {
 export interface PipelineApi {
   createProject(input: CreateProjectRequest): CreateProjectResponse;
   saveVideoPlan(projectId: string, plan: unknown): Revision;
+  getVideoPlan(revisionId: string): VideoPlan;
   saveArtifact(input: SaveArtifactRequest): Artifact;
   getArtifact(artifactId: string): Artifact;
   queuePlanning(input: QueuePipelineStageRequest): PipelineJob;
@@ -58,7 +59,6 @@ const PROJECT_BOOTSTRAP_JOB: JobType = "transcript.generate";
 export class InMemoryPipelineApi implements PipelineApi {
   private readonly metadataStore: ProjectMetadataStore;
   private readonly artifactStore: ImmutableArtifactStore;
-  private readonly videoPlansByRevision = new Map<string, VideoPlan>();
 
   constructor(input?: {
     metadataStore?: ProjectMetadataStore;
@@ -117,9 +117,19 @@ export class InMemoryPipelineApi implements PipelineApi {
     };
 
     this.metadataStore.appendPlanRevision(projectId, revision);
-    this.videoPlansByRevision.set(revision.revisionId, plan);
+    this.metadataStore.saveVideoPlan(revision.revisionId, plan);
 
     return revision;
+  }
+
+  getVideoPlan(revisionId: string): VideoPlan {
+    const videoPlan = this.metadataStore.getVideoPlan(revisionId);
+    if (!videoPlan) {
+      throw new Error(`Video plan not found for revision: ${revisionId}`);
+    }
+
+    assertValidVideoPlan(videoPlan);
+    return videoPlan;
   }
 
   saveArtifact(input: SaveArtifactRequest): Artifact {
