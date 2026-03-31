@@ -6,6 +6,7 @@ export class InMemoryProjectMetadataStore implements ProjectMetadataStore {
   private readonly projectProviders = new Map<string, Provider>();
   private readonly jobs = new Map<string, PipelineJob[]>();
   private readonly planRevisions = new Map<string, Revision[]>();
+  private readonly videoPlansByRevision = new Map<string, unknown>();
 
   saveProject(project: Project, provider: Provider): void {
     this.projects.set(project.projectId, project);
@@ -36,6 +37,14 @@ export class InMemoryProjectMetadataStore implements ProjectMetadataStore {
 
   listPlanRevisions(projectId: string): Revision[] {
     return this.planRevisions.get(projectId) ?? [];
+  }
+
+  saveVideoPlan(revisionId: string, plan: unknown): void {
+    this.videoPlansByRevision.set(revisionId, plan);
+  }
+
+  getVideoPlan(revisionId: string): unknown | undefined {
+    return this.videoPlansByRevision.get(revisionId);
   }
 }
 

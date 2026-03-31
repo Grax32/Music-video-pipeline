@@ -50,10 +50,11 @@ npm run build
 - ✅ Runtime `VideoPlan` schema validation is available via AJV, with valid/invalid fixtures for quick checks.
 - ✅ Plan revisions can now be saved with strict runtime validation before storyboard jobs are accepted.
 - ✅ Storage adapter interfaces now separate metadata/artifact persistence from API orchestration, with in-memory defaults.
+- ✅ Filesystem-backed storage adapters now persist metadata, artifacts, and saved `VideoPlan` payloads by revision.
 - ⏳ Remaining priorities:
-  - disk or database-backed persistence adapters for process restarts
+  - database-backed persistence adapters for multi-process scaling and stronger consistency
 
 ## Next recommended steps
 
-1. Add filesystem/DB-backed adapters implementing `ProjectMetadataStore` and `ImmutableArtifactStore`.
-2. Persist `VideoPlan` payloads by revision in storage so plan validation lineage survives process restarts.
+1. Add PostgreSQL-backed metadata adapters for concurrent orchestrator workers.
+2. Split plan/artifact JSON persistence into append-only event logs for stronger auditability.

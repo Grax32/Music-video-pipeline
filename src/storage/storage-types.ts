@@ -8,6 +8,8 @@ export interface ProjectMetadataStore {
   listJobs(projectId: string): PipelineJob[];
   appendPlanRevision(projectId: string, revision: Revision): void;
   listPlanRevisions(projectId: string): Revision[];
+  saveVideoPlan(revisionId: string, plan: unknown): void;
+  getVideoPlan(revisionId: string): unknown | undefined;
 }
 
 export interface ImmutableArtifactStore {
