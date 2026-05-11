@@ -7,6 +7,8 @@ import {
   queueJob,
   FileSystemProjectMetadataStore,
   FileSystemImmutableArtifactStore,
+  createCatalogReleaseViewModel,
+  createFeaturedAlbumViewModel,
 } from '../dist/index.js';
 
 const validPlan = JSON.parse(readFileSync(new URL('../fixtures/video-plan.valid.json', import.meta.url), 'utf8'));
@@ -106,6 +108,34 @@ runCheck('api.saveArtifact/getArtifact persists immutable artifact metadata', ()
   const fetched = api.getArtifact(artifact.artifactId);
   assert.equal(fetched.path, '/tmp/plan.json');
   assert.equal(fetched.metadata.source, 'smoke');
+});
+
+
+runCheck('catalog release view models add Coming Soon banners for future album and song dates', () => {
+  const now = new Date('2026-05-11T00:00:00.000Z');
+  const futureAlbum = createCatalogReleaseViewModel(
+    { id: 'album_future', kind: 'album', title: 'Tomorrow Sounds', releaseDate: '2026-05-12T00:00:00.000Z' },
+    { now },
+  );
+  const releasedSong = createCatalogReleaseViewModel(
+    { id: 'song_live', kind: 'song', title: 'Already Here', releaseDate: '2026-05-10T00:00:00.000Z' },
+    { now },
+  );
+
+  assert.equal(futureAlbum.isComingSoon, true);
+  assert.equal(futureAlbum.bannerText, 'Coming Soon');
+  assert.equal(releasedSong.isComingSoon, false);
+  assert.equal(releasedSong.bannerText, undefined);
+});
+
+runCheck('featured album view model links to the album screen', () => {
+  const featuredAlbum = createFeaturedAlbumViewModel(
+    { id: 'album featured', kind: 'album', title: 'Featured Set', releaseDate: '2026-05-10T00:00:00.000Z' },
+    { now: new Date('2026-05-11T00:00:00.000Z') },
+  );
+
+  assert.equal(featuredAlbum.href, '/albums/album%20featured');
+  assert.equal(featuredAlbum.kind, 'album');
 });
 
 runCheck('filesystem stores persist data across instances', () => {
